@@ -13,13 +13,16 @@ import LoginPage from "@/pages/auth/Login"
 import AdminDashboard from "@/pages/admin"
 import AdminUsers from "@/pages/admin/users"
 import AdminBranches from "@/pages/admin/branches"
+import AdminBranchForm from "@/pages/admin/branches/form"
 import AdminCustomers from "@/pages/admin/customers"
+import AdminCustomerDetail from "@/pages/admin/customers/[id]"
 import AdminPledges from "@/pages/admin/pledges"
 import AdminProducts from "@/pages/admin/products"
 import AdminCategories from "@/pages/admin/categories"
 import AdminGoldRates from "@/pages/admin/gold-rates"
 import AdminReports from "@/pages/admin/reports"
 import AdminSettings from "@/pages/admin/settings"
+import AdminPledgeConfiguration from "@/pages/admin/pledge-configuration"
 import AdminCustomerTitles from "@/pages/admin/customer-titles"
 import AdminRaces from "@/pages/admin/races"
 import AdminReligions from "@/pages/admin/religions"
@@ -31,10 +34,12 @@ import AdminFeeTypes from "@/pages/admin/fee-types"
 // Store pages
 import StoreDashboard from "@/pages/store"
 import StoreCustomers from "@/pages/store/customers"
+import StoreCustomersNew from "@/pages/store/customers/new"
+import StoreCustomerDetail from "@/pages/store/customers/[id]"
+import StoreCustomerEdit from "@/pages/store/customers/edit"
 import StorePledges from "@/pages/store/pledges"
 import StorePledgesNew from "@/pages/store/pledges/new"
 import StorePledgesCreate from "@/pages/store/pledges/create"
-import StoreCustomersNew from "@/pages/store/customers/new"
 import StoreRenewals from "@/pages/store/renewals"
 import StoreRedemptions from "@/pages/store/redemptions"
 import StoreAuctions from "@/pages/store/auctions"
@@ -60,14 +65,18 @@ export default function AppRouter() {
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/customers" element={<AdminCustomers />} />
+              <Route path="/admin/customers/:id" element={<AdminCustomerDetail />} />
               <Route path="/admin/pledges" element={<AdminPledges />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/branches" element={<AdminBranches />} />
+              <Route path="/admin/branches/create" element={<AdminBranchForm />} />
+              <Route path="/admin/branches/:id/edit" element={<AdminBranchForm />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/categories" element={<AdminCategories />} />
               <Route path="/admin/gold-rates" element={<AdminGoldRates />} />
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/pledge-configuration" element={<AdminPledgeConfiguration />} />
               
               {/* Lookup Tables */}
               <Route path="/admin/customer-titles" element={<AdminCustomerTitles />} />
@@ -89,6 +98,8 @@ export default function AppRouter() {
               <Route path="/store/pledges/create" element={<StorePledgesCreate />} />
               <Route path="/store/customers" element={<StoreCustomers />} />
               <Route path="/store/customers/new" element={<StoreCustomersNew />} />
+              <Route path="/store/customers/:id" element={<StoreCustomerDetail />} />
+              <Route path="/store/customers/:id/edit" element={<StoreCustomerEdit />} />
               <Route path="/store/renewals" element={<StoreRenewals />} />
               <Route path="/store/redemptions" element={<StoreRedemptions />} />
               <Route path="/store/auctions" element={<StoreAuctions />} />

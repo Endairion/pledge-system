@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Customer model for customer management.
@@ -52,7 +53,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
-    use HasUuidV7, SoftDeletes;
+    use HasUuidV7, SoftDeletes, HasFactory;
 
     protected $fillable = [
         'customer_no',
@@ -87,6 +88,11 @@ class Customer extends Model
         'is_blacklisted'        => 'boolean',
         'blacklisted_at'        => 'datetime',
     ];
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function title(): BelongsTo
     {

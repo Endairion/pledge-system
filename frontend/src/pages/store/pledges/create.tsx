@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
+import api from "@/lib/api"
 import { useItemForm } from "@/hooks/useItemForm"
 import { usePledgeCalculations } from "@/hooks/usePledgeCalculations"
 import { ItemsList } from "@/components/ItemsList"
@@ -9,17 +10,18 @@ import { FeesSection } from "@/components/FeesSection"
 import { ItemFormModal } from "@/components/ItemFormModal"
 import { InterestBreakdownModal } from "@/components/InterestBreakdownModal"
 
-const DURATIONS = [
-  { value: 1, label: "1 Month" },
-  { value: 2, label: "2 Months" },
-  { value: 3, label: "3 Months" },
-  { value: 4, label: "4 Months" },
-  { value: 5, label: "5 Months" },
-  { value: 6, label: "6 Months" },
-]
+interface Customer {
+  id: string
+  customer_no: string
+  full_name: string
+  id_number: string
+  authorized_loan_limit: number
+}
 
-const MOCK_CUSTOMERS: Record<string, any> = {
-  "cust-1": { id: "cust-1", name: "Ahmad bin Ali", ic: "900101-01-1234" },
+interface PledgeConfig {
+  duration: number
+  monthly_rates: Record<string, string>
+  compliance_type: string
 }
 
 /**
@@ -30,20 +32,67 @@ const MOCK_CUSTOMERS: Record<string, any> = {
 export default function StorePledgesCreate() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const customer_id = searchParams.get("customer_id") || "cust-1"
-  const customer = MOCK_CUSTOMERS[customer_id]
+  const customer_id = searchParams.get("customer_id")
+  const [customer, setCustomer] = useState<Customer | null>(null)
+  const [customerLoading, setCustomerLoading] = useState(!!customer_id)
+  const [pledgeConfig, setPledgeConfig] = useState<PledgeConfig | null>(null)
+
+  useEffect(() => {
+    if (customer_id) {
+      const fetchCustomerAndConfig = async () => {
+        try {
+          // Fetch complete configuration for customer
+          const configResponse = await api.get(`/pledges/config/${customer_id}`)
+          const config = configResponse.data.data
+          setPledgeConfig({
+            duration: config.duration,
+            monthly_rates: config.monthly_rates,
+            compliance_type: config.compliance_type,
+          })
+          
+          // Fetch customer details
+          const customerResponse = await api.get(`/customers/${customer_id}`)
+          setCustomer(customerResponse.data.data)
+        } catch (err) {
+          console.error("Failed to load customer or config:", err)
+          // Use defaults on error
+          setPledgeConfig({
+            duration: 8,
+            monthly_rates: {
+              "1": "1.5",
+              "2": "2",
+              "3": "2",
+              "4": "2",
+              "5": "2",
+              "6": "2",
+              "7": "2",
+              "8": "2",
+            },
+            compliance_type: "conventional",
+          })
+        } finally {
+          setCustomerLoading(false)
+        }
+      }
+      fetchCustomerAndConfig()
+    } else {
+      setCustomerLoading(false)
+    }
+  }, [customer_id])
 
   const itemForm = useItemForm()
   const [bankPayment, setBankPayment] = useState(0)
   const [cashPayment, setCashPayment] = useState(0)
-  const [duration, setDuration] = useState(3)
   const [notes, setNotes] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [showInterestModal, setShowInterestModal] = useState(false)
   const [showItemModal, setShowItemModal] = useState(false)
 
   const totalLoan = bankPayment + cashPayment
-  const calculations = usePledgeCalculations(itemForm.totalItemValue, totalLoan, duration)
+  // Use fetched pledge configuration with monthly rates
+  const pledgeDuration = pledgeConfig?.duration || 8
+  const monthlyRates = pledgeConfig?.monthly_rates
+  const calculations = usePledgeCalculations(itemForm.totalItemValue, totalLoan, pledgeDuration, monthlyRates)
 
   async function handleSubmit() {
     if (itemForm.items.length === 0) {
@@ -73,27 +122,44 @@ export default function StorePledgesCreate() {
         <h1 className="text-2xl font-bold">Create Pledge</h1>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          handleSubmit()
-        }}
-        className="space-y-6"
-      >
-        {/* Customer Info */}
-        <div className="bg-card border rounded-lg p-6 space-y-4">
-          <h2 className="text-lg font-semibold">Customer Information</h2>
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground block">Name</span>
-              <span className="font-medium">{customer?.name}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground block">IC</span>
-              <span className="font-medium">{customer?.ic}</span>
+      {customerLoading && (
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-muted-foreground">Loading customer information...</p>
+        </div>
+      )}
+
+      {!customerLoading && !customer && (
+        <div className="bg-card border border-destructive rounded-lg p-6">
+          <p className="text-destructive">No customer selected. Please select a customer first.</p>
+        </div>
+      )}
+
+      {!customerLoading && customer && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            handleSubmit()
+          }}
+          className="space-y-6"
+        >
+          {/* Customer Info */}
+          <div className="bg-card border rounded-lg p-6 space-y-4">
+            <h2 className="text-lg font-semibold">Customer Information</h2>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground block">Name</span>
+                <span className="font-medium">{customer.full_name}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block">IC</span>
+                <span className="font-medium">{customer.id_number}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block">Loan Limit</span>
+                <span className="font-medium">RM {customer.authorized_loan_limit?.toLocaleString()}</span>
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Pledge Items */}
         <ItemsList
@@ -119,28 +185,12 @@ export default function StorePledgesCreate() {
           totalLoan={totalLoan}
         />
 
-        {/* Duration */}
-        <div className="bg-card border rounded-lg p-6 space-y-4">
-          <h2 className="text-lg font-semibold">Duration</h2>
-          <select
-            value={duration}
-            onChange={(e) => setDuration(parseInt(e.target.value))}
-            className="w-full border rounded-md px-3 py-2 text-sm bg-background text-foreground dark:bg-slate-950 dark:text-slate-100"
-          >
-            {DURATIONS.map((d) => (
-              <option key={d.value} value={d.value}>
-                {d.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* Fees & Interest */}
         <FeesSection
           pledgeChargeFee={calculations.pledgeChargeFee}
           pledgeInterestRate={calculations.pledgeInterestRate}
           monthlyStgFee={calculations.monthlyStgFee}
-          duration={duration}
+          duration={pledgeDuration}
           onViewBreakdown={() => setShowInterestModal(true)}
         />
 
@@ -173,6 +223,7 @@ export default function StorePledgesCreate() {
           </button>
         </div>
       </form>
+      )}
 
       {/* Item Form Modal */}
       <ItemFormModal
@@ -190,7 +241,7 @@ export default function StorePledgesCreate() {
       {/* Interest Breakdown Modal */}
       <InterestBreakdownModal
         isOpen={showInterestModal}
-        duration={duration}
+        duration={pledgeDuration}
         totalLoan={totalLoan}
         monthlyRates={calculations.interestRates}
         onClose={() => setShowInterestModal(false)}

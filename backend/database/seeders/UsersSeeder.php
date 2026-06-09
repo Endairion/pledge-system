@@ -43,7 +43,6 @@ class UsersSeeder extends Seeder
             'email' => 'super@system.local',
             'password' => Hash::make('password'),
             'branch_id' => null, // No branch scope
-            'is_active' => true,
         ]);
         $superAdmin->roles()->attach($superAdminRole->id);
 
@@ -57,7 +56,6 @@ class UsersSeeder extends Seeder
             'email' => 'admin@kde.local',
             'password' => Hash::make('password'),
             'branch_id' => $kde->id,
-            'is_active' => true,
         ]);
         $kde_admin->roles()->attach($branchAdminRole->id);
 
@@ -67,7 +65,6 @@ class UsersSeeder extends Seeder
             'email' => 'staff1@kde.local',
             'password' => Hash::make('password'),
             'branch_id' => $kde->id,
-            'is_active' => true,
         ]);
         $kde_staff1->roles()->attach($branchStaffRole->id);
 
@@ -77,7 +74,6 @@ class UsersSeeder extends Seeder
             'email' => 'staff2@kde.local',
             'password' => Hash::make('password'),
             'branch_id' => $kde->id,
-            'is_active' => true,
         ]);
         // Multi-role: staff + viewer (can access store + analytics)
         $kde_staff2->roles()->attach([$branchStaffRole->id, $viewerRole->id]);
@@ -92,7 +88,6 @@ class UsersSeeder extends Seeder
             'email' => 'admin@pg.local',
             'password' => Hash::make('password'),
             'branch_id' => $pg->id,
-            'is_active' => true,
         ]);
         $pg_admin->roles()->attach($branchAdminRole->id);
 
@@ -102,17 +97,15 @@ class UsersSeeder extends Seeder
             'email' => 'staff1@pg.local',
             'password' => Hash::make('password'),
             'branch_id' => $pg->id,
-            'is_active' => true,
         ]);
         $pg_staff1->roles()->attach($branchStaffRole->id);
 
-        // Branch Staff 2 for PG (inactive - for testing deactivation)
+        // Branch Staff 2 for PG
         $pg_staff2 = User::create([
-            'name' => 'pg_staff_2_inactive',
-            'email' => 'staff2_inactive@pg.local',
+            'name' => 'pg_staff_2',
+            'email' => 'staff2@pg.local',
             'password' => Hash::make('password'),
             'branch_id' => $pg->id,
-            'is_active' => false, // Deactivated account
         ]);
         $pg_staff2->roles()->attach($branchStaffRole->id);
 
@@ -125,8 +118,7 @@ class UsersSeeder extends Seeder
             'name' => 'auditor',
             'email' => 'auditor@system.local',
             'password' => Hash::make('password'),
-            'branch_id' => null, // Not scoped to a branch
-            'is_active' => true,
+            'branch_id' => null,
         ]);
         $auditor->roles()->attach($viewerRole->id);
 
@@ -135,8 +127,7 @@ class UsersSeeder extends Seeder
             'name' => 'multi_manager',
             'email' => 'manager@system.local',
             'password' => Hash::make('password'),
-            'branch_id' => $kde->id, // Primary branch
-            'is_active' => true,
+            'branch_id' => $kde->id,
         ]);
         $multi_manager->roles()->attach($branchAdminRole->id);
 
@@ -150,7 +141,6 @@ class UsersSeeder extends Seeder
             'email' => 'test@system.local',
             'password' => Hash::make('password'),
             'branch_id' => $kde->id,
-            'is_active' => true,
         ]);
         $test_user->roles()->attach($branchStaffRole->id);
     }

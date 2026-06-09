@@ -1,21 +1,18 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { UserCheck, AlertTriangle, UserX, ArrowLeft } from "lucide-react"
+import api from "@/lib/api"
 
 interface Customer {
   id: string
-  name: string
-  ic: string
+  customer_no: string
+  full_name: string
+  id_number: string
   email?: string
   phone?: string
-  isBlacklisted?: boolean
-}
-
-const MOCK_DB: Record<string, Customer> = {
-  "9001011234": { id: "cust-1", name: "Ahmad bin Ali", ic: "900101-01-1234", email: "ahmad@example.com", phone: "012-345-6789" },
-  "8505155678": { id: "cust-2", name: "Siti binti Hassan", ic: "850515-05-5678", email: "siti@example.com", phone: "013-456-7890" },
-  "7802203456": { id: "cust-3", name: "Lim Ah Kow", ic: "780220-12-3456", isBlacklisted: true },
-  "9208107890": { id: "cust-4", name: "Rajkumar a/l Subramaniam", ic: "920810-14-7890", email: "raj@example.com" },
+  is_blacklisted?: boolean
+  blacklisted_reason?: string
+  authorized_loan_limit?: number
 }
 
 function normalise(ic: string): string {
@@ -34,25 +31,30 @@ export default function StorePledgesNew() {
     setCustomer(null)
     setError(null)
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 400))
-
-    const normalized = normalise(ic)
-    const found = MOCK_DB[normalized]
-
-    setLoading(false)
-
-    if (!found) {
+    try {
+      const response = await api.get(`/customers/lookup/ic/${ic}`)
+      const found = response.data.data
+      
+      setLoading(false)
+      setCustomer(found)
+    } catch (err: any) {
+      setLoading(false)
+      
+      // Check if response indicates blacklisted customer
+      if (err.response?.status === 403 && err.response?.data?.is_blacklisted) {
+        setError("blacklisted")
+        return
+      }
+      
+      // Customer not found
+      if (err.response?.status === 404) {
+        setError("not-found")
+        return
+      }
+      
+      // Other errors
       setError("not-found")
-      return
     }
-
-    if (found.isBlacklisted) {
-      setError("blacklisted")
-      return
-    }
-
-    setCustomer(found)
   }
 
   function handleContinue() {
@@ -108,9 +110,9 @@ export default function StorePledgesNew() {
 
             <div className="grid grid-cols-2 gap-2 text-sm">
               <span className="text-muted-foreground">Name:</span>
-              <span className="font-medium">{customer.name}</span>
+              <span className="font-medium">{customer.full_name}</span>
               <span className="text-muted-foreground">IC:</span>
-              <span className="font-medium">{customer.ic}</span>
+              <span className="font-medium">{customer.id_number}</span>
               {customer.phone && (
                 <>
                   <span className="text-muted-foreground">Phone:</span>
@@ -121,6 +123,12 @@ export default function StorePledgesNew() {
                 <>
                   <span className="text-muted-foreground">Email:</span>
                   <span className="font-medium">{customer.email}</span>
+                </>
+              )}
+              {customer.authorized_loan_limit && (
+                <>
+                  <span className="text-muted-foreground">Loan Limit:</span>
+                  <span className="font-medium">RM {customer.authorized_loan_limit?.toLocaleString()}</span>
                 </>
               )}
             </div>

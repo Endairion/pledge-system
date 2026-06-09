@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -37,7 +38,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasUuidV7, SoftDeletes;
+    use HasApiTokens, HasUuidV7, SoftDeletes, HasFactory;
 
     protected $fillable = [
         'name',
@@ -89,5 +90,15 @@ class User extends Authenticatable
     public function canAccessAnalytics(): bool
     {
         return $this->roles->contains('can_access_analytics', true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->roles->contains('name', 'Super Admin') || $this->roles->contains('name', 'super_admin');
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->isSuperAdmin() || $this->canAccessAdmin();
     }
 }

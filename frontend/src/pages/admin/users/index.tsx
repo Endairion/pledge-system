@@ -8,7 +8,6 @@ interface UserFormData {
   email: string
   password?: string
   branch_id: string | null
-  is_active: boolean
   roles: string[]
 }
 
@@ -35,7 +34,6 @@ export default function Users() {
     email: "",
     password: "",
     branch_id: null,
-    is_active: true,
     roles: [],
   })
   const [totalPages, setTotalPages] = useState(0)
@@ -96,7 +94,6 @@ export default function Users() {
         email: user.email,
         password: "",
         branch_id: user.branch_id,
-        is_active: user.is_active ?? true,
         roles: user.roles?.map((r) => r.id) || [],
       })
     } else {
@@ -106,7 +103,6 @@ export default function Users() {
         email: "",
         password: "",
         branch_id: null,
-        is_active: true,
         roles: [],
       })
     }
@@ -121,7 +117,6 @@ export default function Users() {
       email: "",
       password: "",
       branch_id: null,
-      is_active: true,
       roles: [],
     })
   }
@@ -142,7 +137,6 @@ export default function Users() {
         name: formData.name,
         email: formData.email,
         branch_id: formData.branch_id,
-        is_active: formData.is_active,
         roles: formData.roles,
       }
 
@@ -188,7 +182,7 @@ export default function Users() {
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-black hover:bg-blue-700 dark:text-white"
         >
           <Plus size={20} />
           Add User
@@ -234,9 +228,6 @@ export default function Users() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">
                 Roles
               </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                Status
-              </th>
               <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900 dark:text-white">
                 Actions
               </th>
@@ -245,13 +236,13 @@ export default function Users() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                   Loading...
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                   No users found
                 </td>
               </tr>
@@ -278,24 +269,13 @@ export default function Users() {
                             key={role.id}
                             className="inline-block rounded bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
                           >
-                            {role.display_name}
+                            {role.name}
                           </span>
                         ))
                       ) : (
                         <span className="text-gray-500">No roles</span>
                       )}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <span
-                      className={`inline-block rounded px-2 py-1 text-xs font-semibold ${
-                        user.is_active ?? true
-                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                          : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400"
-                      }`}
-                    >
-                      {user.is_active ?? true ? "Active" : "Inactive"}
-                    </span>
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">
@@ -462,32 +442,10 @@ export default function Users() {
                         }}
                         className="rounded border-gray-300"
                       />
-                      {role.display_name}
+                      {role.name}
                     </label>
                   ))}
                 </div>
-              </div>
-
-              {/* Is Active */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  checked={formData.is_active}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      is_active: e.target.checked,
-                    })
-                  }
-                  className="rounded border-gray-300"
-                />
-                <label
-                  htmlFor="is_active"
-                  className="text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Active
-                </label>
               </div>
             </div>
 

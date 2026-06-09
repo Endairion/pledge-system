@@ -4,9 +4,11 @@ import { useAuth } from "@/hooks/useAuth"
 import type { User } from "@/types"
 
 function getRedirect(user: User): string {
-  // Use the highest-priority role's default_redirect
-  const topRole = [...user.roles].sort((a, b) => b.priority - a.priority)[0]
-  return topRole?.default_redirect ?? "/store"
+  // Redirect to highest-priority portal user can access: admin > store > analytics
+  if (user.can_access_admin) return "/admin"
+  if (user.can_access_store) return "/store"
+  if (user.can_access_analytics) return "/analytics"
+  return "/store" // default fallback
 }
 
 export default function LoginPage() {

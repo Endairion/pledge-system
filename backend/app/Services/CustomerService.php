@@ -15,22 +15,37 @@ class CustomerService
     public function createCustomer(array $data): Customer
     {
         $user = auth()->user();
-        // Only users with store access can create pledges
-        if (!$this->authService->canAccessStore($user)) {
-            throw new \Illuminate\Validation\UnauthorizedException(
-                'You do not have permission to create pledges.'
-            );
-        }
-
+        
         // Auto-assign to user's branch
         if (!$user->branch_id) {
-            throw new \Exception('Cannot create pledge for user without branch assignment.');
+            throw new \Exception('Cannot create customer for user without branch assignment.');
         }
 
         $data['branch_id'] = $user->branch_id;
-        $data['staff_id'] = $user->id;
+        
+        // Auto-generate customer number
+        $data['customer_no'] = $this->generateCustomerNumber();
 
         return Customer::create($data);
+    }
+    
+    /**
+     * Generate unique customer number
+     */
+    private function generateCustomerNumber(): string
+    {
+        $prefix = 'CST-';
+        $lastCustomer = Customer::orderByDesc('created_at')->first();
+        
+        if (!$lastCustomer) {
+            return $prefix . '001';
+        }
+        
+        // Extract number from last customer_no and increment
+        $lastNumber = (int) substr($lastCustomer->customer_no, strlen($prefix));
+        $newNumber = $lastNumber + 1;
+        
+        return $prefix . str_pad((string)$newNumber, 3, '0', STR_PAD_LEFT);
     }
 
     /**

@@ -8,6 +8,9 @@ use App\Traits\HasUuidV7;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 /**
  * Branch model for multi-branch support.
  * 
@@ -31,11 +34,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @relationship pledges() HasMany Pledge
  * @relationship configs() HasMany BranchConfig
  * @relationship feeConfigs() HasMany BranchFeeConfig
- */use Illuminate\Database\Eloquent\SoftDeletes;
-
+ */
 class Branch extends Model
 {
-    use HasUuidV7, SoftDeletes;
+    use HasUuidV7, SoftDeletes, HasFactory;
 
     protected $fillable = [
         'name',

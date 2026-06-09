@@ -45,11 +45,8 @@ class AuthorizationService
      */
     public function canAccessStore(User $user): bool
     {
-        if (!$user->is_active) {
-            return false;
-        }
         return $user->roles()
-            ->where('can_access_store', true)
+            ->where('is_store', true)
             ->exists();
     }
 
@@ -58,11 +55,8 @@ class AuthorizationService
      */
     public function canAccessAdmin(User $user): bool
     {
-        if (!$user->is_active) {
-            return false;
-        }
         return $user->roles()
-            ->where('can_access_admin', true)
+            ->where('is_admin', true)
             ->exists();
     }
 
@@ -71,11 +65,8 @@ class AuthorizationService
      */
     public function canAccessAnalytics(User $user): bool
     {
-        if (!$user->is_active) {
-            return false;
-        }
         return $user->roles()
-            ->where('can_access_analytics', true)
+            ->where('is_analytics', true)
             ->exists();
     }
 
@@ -84,9 +75,6 @@ class AuthorizationService
      */
     public function hasRole(User $user, string $roleName): bool
     {
-        if (!$user->is_active) {
-            return false;
-        }
         return $user->roles()
             ->where('name', $roleName)
             ->exists();
@@ -164,6 +152,29 @@ class AuthorizationService
     }
 
     /**
+     * Check if user can access customer
+     */
+    public function canAccessCustomer(User $user, $customer): bool
+    {
+        // Super admin can access any customer
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        // Branch staff can access customers in their branch
+        if ($user->branch_id !== null) {
+            return $customer->branch_id === $user->branch_id;
+        }
+
+        // Cross-branch users (auditor, etc.) can access all customers
+        if ($user->roles()->where('can_access_analytics', true)->exists()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Get authorization summary for user (for debugging/testing)
      */
     public function getAuthorizationSummary(User $user): array
@@ -171,7 +182,6 @@ class AuthorizationService
         return [
             'user_id' => $user->id,
             'username' => $user->name,
-            'is_active' => $user->is_active,
             'branch_id' => $user->branch_id,
             'is_super_admin' => $user->isSuperAdmin(),
             'can_access_store' => $this->canAccessStore($user),

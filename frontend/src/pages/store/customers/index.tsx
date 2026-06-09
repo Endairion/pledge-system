@@ -1,44 +1,68 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import api from "@/lib/api"
 
 interface Customer {
   id: string
-  name: string
-  ic: string
+  full_name: string
+  id_number: string
   phone: string
   email: string
-  branch: string
-  city: string
-  created_date: string
+  branch: { name: string }
+  address: string
+  created_at: string
 }
-
-const MOCK_CUSTOMERS: Customer[] = [
-  { id: "1", name: "Ahmad bin Ali", ic: "900101-01-1234", phone: "0123456789", email: "ahmad@email.com", branch: "Kuala Lumpur", city: "Kuala Lumpur", created_date: "2026-05-01" },
-  { id: "2", name: "Siti binti Hassan", ic: "850515-05-5678", phone: "0129876543", email: "siti@email.com", branch: "Kuala Lumpur", city: "Shah Alam", created_date: "2026-04-15" },
-  { id: "3", name: "Lim Ah Kow", ic: "780220-12-3456", phone: "0117654321", email: "lim@email.com", branch: "Penang", city: "Petaling Jaya", created_date: "2026-03-01" },
-  { id: "4", name: "Rajkumar a/l Subramaniam", ic: "920810-14-7890", phone: "0165432109", email: "raj@email.com", branch: "Kuala Lumpur", city: "Subang Jaya", created_date: "2026-05-15" },
-  { id: "5", name: "Nur Fatin binti Roslan", ic: "950301-03-2345", phone: "0112345678", email: "fatin@email.com", branch: "Johor Bahru", city: "Klang", created_date: "2026-01-01" },
-  { id: "6", name: "Muhammad Iqbal", ic: "880724-08-9012", phone: "0134567890", email: "iqbal@email.com", branch: "Kuala Lumpur", city: "Damansara", created_date: "2026-05-20" },
-  { id: "7", name: "Tan Wei Ming", ic: "910315-10-3456", phone: "0156789012", email: "tan@email.com", branch: "Penang", city: "Cyberjaya", created_date: "2025-12-01" },
-]
 
 const PAGE_SIZE = 5
 
 export default function StoreCustomers() {
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(0)
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [totalCount, setTotalCount] = useState(0)
   const navigate = useNavigate()
 
-  let filtered = MOCK_CUSTOMERS
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await api.get('/customers')
+        
+        // The API returns paginated data
+        if (response.data?.data?.data) {
+          setCustomers(response.data.data.data)
+          setTotalCount(response.data.data.total || response.data.data.data.length)
+        } else if (response.data?.data) {
+          // Fallback if API returns different format
+          const data = response.data.data
+          setCustomers(Array.isArray(data) ? data : [])
+          setTotalCount(Array.isArray(data) ? data.length : 0)
+        }
+      } catch (err: any) {
+        console.error('Error fetching customers:', err)
+        setError('Failed to load customers')
+        setCustomers([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCustomers()
+  }, [])
+
+  let filtered = customers
 
   if (search) {
     const q = search.toLowerCase()
     filtered = filtered.filter(c =>
-      c.name.toLowerCase().includes(q) ||
-      c.ic.includes(q) ||
-      c.phone.includes(q) ||
-      c.email.toLowerCase().includes(q)
+      c.full_name.toLowerCase().includes(q) ||
+      c.id_number.includes(q) ||
+      (c.phone && c.phone.includes(q)) ||
+      (c.email && c.email.toLowerCase().includes(q))
     )
   }
 
@@ -75,47 +99,70 @@ export default function StoreCustomers() {
         </div>
       </div>
 
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-md">
+          <p className="text-sm font-medium">{error}</p>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="bg-card border rounded-lg overflow-hidden p-8 text-center">
+          <p className="text-muted-foreground">Loading customers...</p>
+        </div>
+      ) : (
       <div className="bg-card border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="text-left px-4 py-3 font-semibold">Name</th>
-                <th className="text-left px-4 py-3 font-semibold">IC Number</th>
+                <th className="text-left px-4 py-3 font-semibold">ID Number</th>
                 <th className="text-left px-4 py-3 font-semibold">Phone</th>
                 <th className="text-left px-4 py-3 font-semibold">Email</th>
-                <th className="text-left px-4 py-3 font-semibold">Registered At</th>
-                <th className="text-left px-4 py-3 font-semibold">City</th>
+                <th className="text-left px-4 py-3 font-semibold">Branch</th>
+                <th className="text-left px-4 py-3 font-semibold">Address</th>
                 <th className="text-left px-4 py-3 font-semibold">Joined</th>
                 <th className="text-center px-4 py-3 font-semibold">Action</th>
               </tr>
             </thead>
             <tbody>
-              {paginated.map(customer => (
-                <tr key={customer.id} className="border-b hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium">{customer.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{customer.ic}</td>
-                  <td className="px-4 py-3 text-sm">{customer.phone}</td>
-                  <td className="px-4 py-3 text-sm">{customer.email}</td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                      {customer.branch}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm">{customer.city}</td>
-                  <td className="px-4 py-3 text-xs">{customer.created_date}</td>
-                  <td className="px-4 py-3 text-center">
-                    <button className="text-primary hover:underline text-xs font-medium">
-                      View
-                    </button>
+              {paginated.length > 0 ? (
+                paginated.map(customer => (
+                  <tr key={customer.id} className="border-b hover:bg-muted/30">
+                    <td className="px-4 py-3 font-medium">{customer.full_name}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{customer.id_number}</td>
+                    <td className="px-4 py-3 text-sm">{customer.phone || '-'}</td>
+                    <td className="px-4 py-3 text-sm">{customer.email}</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                        {customer.branch?.name || '-'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground truncate max-w-xs">{customer.address || '-'}</td>
+                    <td className="px-4 py-3 text-xs">{new Date(customer.created_at).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-center">
+                      <button 
+                        onClick={() => navigate(`/store/customers/${customer.id}`)}
+                        className="text-primary hover:underline text-xs font-medium">
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                    No customers found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </div>
+      )}
 
+      {!loading && (
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>Showing {start + 1}–{Math.min(start + PAGE_SIZE, total)} of {total} customers</span>
         <div className="flex items-center gap-2">
@@ -136,6 +183,7 @@ export default function StoreCustomers() {
           </button>
         </div>
       </div>
+      )}
     </div>
   )
 }

@@ -18,6 +18,7 @@ const nav = [
 
   
   { to: "/admin/gold-rates", label: "Gold Rates", icon: TrendingUp },
+  { to: "/admin/pledge-configuration", label: "Pledge Config", icon: Receipt },
   { to: "/admin/reports",    label: "Reports",    icon: BarChart3 },
   { to: "/admin/settings",   label: "Settings",   icon: Settings },
 ]

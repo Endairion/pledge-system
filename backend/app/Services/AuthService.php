@@ -26,9 +26,9 @@ class AuthService
             'name' => $user->name,
             'email' => $user->email,
             'branch_id' => $user->branch_id,
-            'can_access_store' => $user->roles->contains(fn ($r) => $r->can_access_store),
-            'can_access_admin' => $user->roles->contains(fn ($r) => $r->can_access_admin),
-            'can_access_analytics' => $user->roles->contains(fn ($r) => $r->can_access_analytics),
+            'can_access_store' => $user->roles->contains(fn ($r) => $r->is_store),
+            'can_access_admin' => $user->roles->contains(fn ($r) => $r->is_admin),
+            'can_access_analytics' => $user->roles->contains(fn ($r) => $r->is_analytics),
             'roles' => $this->formatRoles($user),
         ];
     }
@@ -46,9 +46,9 @@ class AuthService
             'name' => $user->name,
             'email' => $user->email,
             'branch_id' => $user->branch_id,
-            'can_access_store' => $user->roles->contains(fn ($r) => $r->can_access_store),
-            'can_access_admin' => $user->roles->contains(fn ($r) => $r->can_access_admin),
-            'can_access_analytics' => $user->roles->contains(fn ($r) => $r->can_access_analytics),
+            'can_access_store' => $user->roles->contains(fn ($r) => $r->is_store),
+            'can_access_admin' => $user->roles->contains(fn ($r) => $r->is_admin),
+            'can_access_analytics' => $user->roles->contains(fn ($r) => $r->is_analytics),
             'branch' => $user->branch ? [
                 'id' => $user->branch->id,
                 'name' => $user->branch->name,
@@ -70,12 +70,10 @@ class AuthService
         return $user->roles->map(fn ($r) => [
             'id' => $r->id,
             'name' => $r->name,
-            'display_name' => $r->display_name,
-            'can_access_store' => $r->can_access_store,
-            'can_access_admin' => $r->can_access_admin,
-            'can_access_analytics' => $r->can_access_analytics,
-            'default_redirect' => $r->default_redirect,
-            'priority' => $r->priority,
+            'description' => $r->description,
+            'is_store' => $r->is_store,
+            'is_admin' => $r->is_admin,
+            'is_analytics' => $r->is_analytics,
         ])->toArray();
     }
 }
