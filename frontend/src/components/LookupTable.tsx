@@ -130,7 +130,7 @@ export default function LookupTable({ title, description, tableName, singularTit
         </div>
         <button
           onClick={() => openModal()}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-black dark:text-white hover:bg-primary/90 transition-colors"
         >
           <Plus className="h-4 w-4" />
           New {singularTitle}
@@ -263,7 +263,7 @@ export default function LookupTable({ title, description, tableName, singularTit
               </button>
               <button
                 onClick={handleSave}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-black dark:text-white hover:bg-primary/90 transition-colors"
               >
                 {editingId ? "Update" : "Create"}
               </button>

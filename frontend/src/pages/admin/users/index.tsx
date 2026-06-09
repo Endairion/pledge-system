@@ -459,7 +459,7 @@ export default function Users() {
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                className="flex-1 rounded bg-primary px-4 py-2 text-black dark:text-white hover:bg-primary/90"
               >
                 {editingId ? "Update" : "Create"}
               </button>
